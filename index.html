@@ -104,52 +104,44 @@
 </div>
 
 <script>
-   // GANTI DENGAN WEB APP URL DARI LANGKAH DI ATAS
-const webAppUrl = 'https://script.google.com/macros/s/AKfycbyaTIY6FueGZ5CuHigal8e2QOO3m5EHdLAh_rTA0tfNgyC69B_K1CqTRsucNWUFXYCDIg/exec';
+  // 1. Fungsi ini berjalan OTOMATIS saat halaman dibuka
+  window.onload = function() {
+    ambilDataDariSheet();
+  };
 
-async function loadReservations() {
-    try {
-        const response = await fetch(webAppUrl);
-        const data = await response.json(); // Mengambil data sebagai JSON
-        
-        const tableBody = document.getElementById('content-table');
-        const spinner = document.getElementById('loading-spinner');
+  // 2. Fungsi untuk memanggil data dari Google Sheets (Code.gs)
+  function ambilDataDariSheet() {
+    google.script.run
+      .withSuccessHandler(isiTabelOtomatis) // Jika berhasil, jalankan fungsi isiTabelOtomatis
+      .withFailureHandler(function(msg) { alert("Error: " + msg); }) // Jika gagal, muncul pesan
+      .getDataReservasi(); // Nama ini HARUS SAMA dengan fungsi di Code.gs
+  }
 
-        tableBody.innerHTML = '';
-        
-        if (data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada reservasi.</td></tr>';
-        }
+  // 3. Fungsi untuk menaruh data ke dalam tabel UI Anda
+  function isiTabelOtomatis(data) {
+    var tbody = document.getElementById("isi-tabel"); // PASTIKAN ID INI ADA DI TBODY TABEL ANDA
+    tbody.innerHTML = ""; // Menghapus tulisan "Memuat data..."
 
-        data.forEach(item => {
-            // Format Tanggal jika dari Google Script sering berbentuk objek tanggal
-            let tgl = item.tanggal;
-            if (tgl.includes("T")) tgl = tgl.split("T")[0]; // Ambil tanggalnya saja
-
-            const tr = document.createElement('tr');
-            tr.style.borderBottom = "1px solid rgba(255,255,255,0.1)";
-            tr.innerHTML = `
-                <td class="py-3"><strong>${item.nama || '-'}</strong></td>
-                <td class="py-3">${item.mapel || '-'}</td>
-                <td class="py-3 text-center">${tgl || '-'}</td>
-                <td class="py-3 text-center"><span class="badge-time">${item.jam || '-'}</span></td>
-            `;
-            tableBody.appendChild(tr);
-        });
-        
-        spinner.style.display = 'none';
-    } catch (err) {
-        console.error("Detail Error:", err);
-        document.getElementById('loading-spinner').innerHTML = "Gagal memuat data. Pastikan Web App sudah di-Deploy ke 'Anyone'.";
+    for (var i = 1; i < data.length; i++) {
+      var row = data[i];
+      var tr = document.createElement("tr");
+      
+      // Sesuaikan urutan kolom [1], [2], [3] dengan kolom di Spreadsheet Anda
+      tr.innerHTML = `
+        <td>${row[1]}</td>
+        <td>${row[2]}</td>
+        <td>${row[3]}</td>
+        <td>${row[4]}</td>
+      `;
+      tbody.appendChild(tr);
     }
-}
-
-loadReservations();
+  }
 </script>
 
 </body>
 
 </html>
+
 
 
 
